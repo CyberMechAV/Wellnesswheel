@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haarogiyam Wellness Wheel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Laila:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Using Inter for English and Laila for a nice Tamil font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0FDF4; /* A light green background for a wellness feel */
+        }
+        .font-tamil {
+            font-family: 'Laila', serif;
+        }
+        /* The main wheel element */
+        #wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #34D399; /* Emerald border */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1); /* A smooth, exciting spin */
+            background-image: conic-gradient(
+                #10B981, #A7F3D0, #6EE7B7, #34D399, #10B981, #A7F3D0, #6EE7B7, #34D399, #10B981
+            );
+        }
+        /* The pointer that indicates the prize */
+        #wheel-container::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -10px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-top: 40px solid #F59E0B; /* Amber color for the pointer */
+            z-index: 10;
+        }
+        /* Hide scrollbars */
+        html {
+            overflow: hidden;
+        }
+        body {
+            height: 100vh;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body class="text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-md mx-auto text-center">
+
+        <!-- ============== START SCREEN ============== -->
+        <div id="start-screen">
+            <img src="https://placehold.co/150x150/34D399/FFFFFF?text=Haarogiyam" alt="Haarogiyam Logo" class="mx-auto mb-4 rounded-full" onerror="this.onerror=null;this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Logo';">
+            <h1 class="text-3xl md:text-4xl font-bold text-emerald-800">Haarogiyam Wellness Wheel</h1>
+            <p class="font-tamil text-xl md:text-2xl text-emerald-600 mt-1 mb-6">ஆரோக்கியத்திற்கான சக்கரம்</p>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-lg font-semibold mb-1">What is your biggest health worry right now?</h2>
+                <p class="font-tamil text-md text-gray-600 mb-4">உங்கள் மிகப்பெரிய ஆரோக்கிய கவலை என்ன?</p>
+                <div id="choices-container" class="grid grid-cols-1 gap-3">
+                    <!-- Buttons will be dynamically inserted here by JavaScript -->
+                </div>
+            </div>
+            <a href="https://www.haarogiyam.com" target="_blank" class="block mt-6 text-sm text-gray-500 hover:text-emerald-600 transition">Powered by Haarogiyam</a>
+        </div>
+
+        <!-- ============== WHEEL SCREEN ============== -->
+        <div id="wheel-screen" class="hidden">
+            <h2 class="text-2xl font-bold text-emerald-800 mb-8">Spinning for your solution...</h2>
+            <div id="wheel-container" class="relative inline-block my-8">
+                <div id="wheel"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============== RESULT MODAL ============== -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div id="result-content" class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6 text-center transform scale-95 opacity-0 transition-all duration-300">
+            <img id="result-image" src="" alt="Product Image" class="w-32 h-32 mx-auto rounded-full border-4 border-amber-400 mb-4 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/128x128/CCCCCC/FFFFFF?text=Prize';">
+            <h3 id="result-title" class="text-2xl font-bold text-emerald-800"></h3>
+            <p id="result-explanation" class="text-gray-600 my-3"></p>
+            <div class="bg-amber-100 border-2 border-dashed border-amber-400 rounded-lg p-3 my-4">
+                <p class="text-sm text-amber-800">Your Exclusive Discount Code:</p>
+                <p id="result-code" class="text-2xl font-bold text-amber-900"></p>
+            </div>
+            <a id="result-button" href="#" target="_blank" class="block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-105">
+                Claim My Prize on WhatsApp!
+            </a>
+            <button id="spin-again-button" class="mt-4 text-sm text-gray-500 hover:text-emerald-700">Spin Again</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CONFIGURATION ---
+            // The WhatsApp number has been updated as per your request.
+            const WHATSAPP_NUMBER = '918610314894'; 
+
+            // This is where you define all the prizes and their details.
+            // To add a new prize, just add a new object to this array.
+            // Replace placeholder images with actual product image URLs from your website.
+            const prizes = [
+                {
+                    id: 'hairfall',
+                    question: 'முடி உதிர்வு (Hairfall)',
+                    productName: 'VBotanics Organic Amla Powder',
+                    explanation: 'Amla strengthens hair follicles from the root with Vitamin C and antioxidants, reducing hairfall and promoting healthy growth.',
+                    discountCode: 'AMLA15',
+                    imageUrl: 'https://placehold.co/400x400/22C55E/FFFFFF?text=Amla+Powder'
+                },
+                {
+                    id: 'tiredness',
+                    question: 'சோர்வு (Tiredness)',
+                    productName: 'VBotanics Moringa Powder',
+                    explanation: 'A natural multivitamin packed with Iron and nutrients to fight fatigue, boost your metabolism, and keep you energetic all day.',
+                    discountCode: 'ENERGY20',
+                    imageUrl: 'https://placehold.co/400x400/16A34A/FFFFFF?text=Moringa'
+                },
+                {
+                    id: 'stress',
+                    question: 'மன அழுத்தம் (Stress/Sleep)',
+                    productName: 'VBotanics Ashwagandha Powder',
+                    explanation: 'This celebrated adaptogen helps calm your nervous system, reduces stress hormones, and promotes deeper, more restful sleep.',
+                    discountCode: 'RELAX15',
+                    imageUrl: 'https://placehold.co/400x400/4D7C0F/FFFFFF?text=Ashwagandha'
+                },
+                {
+                    id: 'immunity',
+                    question: 'நோய் எதிர்ப்பு சக்தி (Immunity)',
+                    productName: 'High-Curcumin Turmeric Powder',
+                    explanation: 'The curcumin in turmeric is a powerful anti-inflammatory and antioxidant that strengthens your immune response to keep you healthy.',
+                    discountCode: 'IMMUNE15',
+                    imageUrl: 'https://placehold.co/400x400/F59E0B/FFFFFF?text=Turmeric'
+                },
+                {
+                    id: 'digestion',
+                    question: 'செரிமானம் (Digestion)',
+                    productName: 'VBotanics Dry Ginger (Sukku) Powder',
+                    explanation: 'A traditional remedy that fires up your digestive system, helping to relieve gas, bloating, and indigestion for better comfort.',
+                    discountCode: 'DIGEST20',
+                    imageUrl: 'https://placehold.co/400x400/D97706/FFFFFF?text=Sukku'
+                }
+            ];
+
+            // --- ELEMENT REFERENCES ---
+            const startScreen = document.getElementById('start-screen');
+            const wheelScreen = document.getElementById('wheel-screen');
+            const choicesContainer = document.getElementById('choices-container');
+            const wheel = document.getElementById('wheel');
+            const resultModal = document.getElementById('result-modal');
+            const resultContent = document.getElementById('result-content');
+            const spinAgainButton = document.getElementById('spin-again-button');
+
+            // --- FUNCTIONS ---
+
+            // Function to create the initial choice buttons
+            function createChoiceButtons() {
+                choicesContainer.innerHTML = ''; // Clear existing buttons
+                prizes.forEach(prize => {
+                    const button = document.createElement('button');
+                    button.className = 'w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-lg transition-transform hover:scale-105 text-left';
+                    button.innerHTML = `<span class="font-tamil">${prize.question}</span>`;
+                    button.onclick = () => handleChoice(prize);
+                    choicesContainer.appendChild(button);
+                });
+            }
+
+            // Function to handle the user's choice
+            function handleChoice(chosenPrize) {
+                startScreen.classList.add('hidden');
+                wheelScreen.classList.remove('hidden');
+                spinTheWheel(chosenPrize);
+            }
+
+            // Function to spin the wheel and show the result
+            function spinTheWheel(prize) {
+                // The spin is for visual effect. The prize is already decided.
+                // We'll spin the wheel for a few rotations plus a random amount.
+                const totalRotations = 5;
+                const randomAngle = Math.random() * 360;
+                const finalAngle = (totalRotations * 360) + randomAngle;
+
+                wheel.style.transform = `rotate(${finalAngle}deg)`;
+
+                // Wait for the spin animation to finish before showing the result
+                setTimeout(() => {
+                    showResult(prize);
+                }, 4200); // This duration should be slightly longer than the CSS transition
+            }
+
+            // Function to populate and show the result modal
+            function showResult(prize) {
+                document.getElementById('result-image').src = prize.imageUrl;
+                document.getElementById('result-title').textContent = `You've won ${prize.discountCode.split(/(\d+)/)[0]}% OFF!`;
+                document.getElementById('result-explanation').textContent = prize.explanation;
+                document.getElementById('result-code').textContent = prize.discountCode;
+                
+                const whatsappMessage = `Hello Haarogiyam! I'd like to claim my prize for ${prize.productName} with the discount code: ${prize.discountCode}`;
+                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+                document.getElementById('result-button').href = whatsappUrl;
+
+                resultModal.classList.remove('hidden');
+                setTimeout(() => {
+                    resultContent.classList.remove('scale-95', 'opacity-0');
+                    resultContent.classList.add('scale-100', 'opacity-100');
+                }, 10); // A tiny delay to allow the modal to be displayed before transforming
+            }
+
+            // Function to reset the tool
+            function resetTool() {
+                resultContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    resultModal.classList.add('hidden');
+                    wheelScreen.classList.add('hidden');
+                    startScreen.classList.remove('hidden');
+                    wheel.style.transform = 'rotate(0deg)'; // Reset wheel rotation
+                    wheel.style.transition = 'none'; // Prevent animation on reset
+                    setTimeout(() => { // Re-enable transition after reset
+                         wheel.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
+                    }, 50);
+                }, 300);
+            }
+
+            // --- INITIALIZATION ---
+            createChoiceButtons();
+            spinAgainButton.addEventListener('click', resetTool);
+        });
+    </script>
+</body>
+</html>
